@@ -2,7 +2,7 @@ package com.amoferreira.cryptotracker.crypto.presentation.models
 
 import androidx.annotation.DrawableRes
 import com.amoferreira.cryptotracker.crypto.domain.Coin
-import com.amoferreira.cryptotracker.util.getDrawableIdForCoin
+import com.amoferreira.cryptotracker.core.presentation.util.getDrawableIdForCoin
 
 data class CoinUi(
     val id: String,

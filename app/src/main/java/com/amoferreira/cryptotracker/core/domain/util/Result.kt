@@ -1,4 +1,4 @@
-package com.amoferreira.cryptotracker.util
+package com.amoferreira.cryptotracker.core.domain.util
 
 typealias DomainError = Error
 

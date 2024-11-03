@@ -1,4 +1,4 @@
-package com.amoferreira.cryptotracker.util
+package com.amoferreira.cryptotracker.core.presentation.util
 
 import com.amoferreira.cryptotracker.R
 
