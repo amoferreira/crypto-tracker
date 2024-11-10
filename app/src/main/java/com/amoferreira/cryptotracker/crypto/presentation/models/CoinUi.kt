@@ -1,8 +1,8 @@
 package com.amoferreira.cryptotracker.crypto.presentation.models
 
 import androidx.annotation.DrawableRes
-import com.amoferreira.cryptotracker.crypto.domain.Coin
 import com.amoferreira.cryptotracker.core.presentation.util.getDrawableIdForCoin
+import com.amoferreira.cryptotracker.crypto.domain.Coin
 
 data class CoinUi(
     val id: String,
@@ -26,3 +26,8 @@ fun Coin.toCoinUi(): CoinUi =
         changePercent24Hr = changePercent24Hr.toDisplayableNumber(),
         icon = getDrawableIdForCoin(symbol),
     )
+
+fun getAbsoluteChangeFormatted(price: Double, changePercent: Double): DisplayableNumber {
+    val absoluteValue = price * (changePercent / 100)
+    return absoluteValue.toDisplayableNumber()
+}
