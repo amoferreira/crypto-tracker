@@ -1,11 +1,14 @@
 package com.amoferreira.cryptotracker.crypto.presentation.coinlist
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amoferreira.cryptotracker.core.domain.util.onError
 import com.amoferreira.cryptotracker.core.domain.util.onSuccess
 import com.amoferreira.cryptotracker.crypto.domain.CoinDataSource
 import com.amoferreira.cryptotracker.crypto.presentation.coinlist.components.CoinListState
+import com.amoferreira.cryptotracker.crypto.presentation.models.CoinUi
 import com.amoferreira.cryptotracker.crypto.presentation.models.toCoinUi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +18,9 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
 
+@RequiresApi(Build.VERSION_CODES.O)
 class CoinListViewModel(
     private val coinDataSource: CoinDataSource,
 ): ViewModel() {
@@ -34,8 +39,38 @@ class CoinListViewModel(
     fun onAction(action: CoinListAction) {
         when(action) {
             is CoinListAction.OnCoinClick -> {
-
+                selectCoin(action.coinUi)
             }
+        }
+    }
+
+    private fun selectCoin(coinUi: CoinUi) {
+        _uiState.update { it.copy(selectedCoin = coinUi) }
+        loadCoinDetails(coinUi.id)
+    }
+
+    private fun loadCoinDetails(coinId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            coinDataSource
+                .getCoinHistory(
+                    coinId = coinId,
+                    start = ZonedDateTime.now().minusDays(5),
+                    end = ZonedDateTime.now()
+                )
+                .onSuccess { history ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                        )
+                    }
+                    println(history)
+                }
+                .onError { error ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    _events.send(CoinListEvent.Error(error))
+                }
         }
     }
 
