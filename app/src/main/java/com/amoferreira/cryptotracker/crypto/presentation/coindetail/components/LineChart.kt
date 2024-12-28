@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -19,6 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
@@ -79,6 +84,11 @@ fun LineChart(
     Canvas(
         modifier = modifier
             .fillMaxSize()
+            .pointerInput(drawPoints, xLabelWidth) {
+                detectHorizontalDragGestures { change, _ ->
+                    change.position.x
+                }
+            }
     ) {
         val minLabelSpacingYPx = style.minYLabelSpacing.toPx()
         val verticalPaddingPx = style.verticalPadding.toPx()
@@ -240,8 +250,100 @@ fun LineChart(
                 )
             }
         }
+
+        drawPoints = visibleDataPointsIndices.map {
+            val x = viewPortLeftX + (it - visibleDataPointsIndices.first) *
+                    xLabelWidth + xLabelWidth / 2f
+            val ration = (dataPoints[it].y - minYValue) / (maxYValue - minYValue)
+            val y = viewPortBottomY - (ration * viewPortHeightPx)
+            DataPoint(
+                x = x,
+                y = y,
+                xLabel = dataPoints[it].xLabel,
+            )
+        }
+
+        val connectionPoints1 = mutableListOf<DataPoint>()
+        val connectionPoints2 = mutableListOf<DataPoint>()
+        for (i in 1 until drawPoints.size) {
+            val p0 = drawPoints[i -1]
+            val p1 = drawPoints[i]
+
+            val x = (p1.x + p0.x) / 2f
+            val y1 = p0.y
+            val y2 = p1.y
+
+            connectionPoints1.add(DataPoint(x, y1, ""))
+            connectionPoints2.add(DataPoint(x, y2, ""))
+        }
+
+        val linePath = Path().apply {
+            if (drawPoints.isNotEmpty()) {
+                moveTo(drawPoints.first().x, drawPoints.first().y)
+
+                for (i in 1 until drawPoints.size) {
+                    cubicTo(
+                        x1 = connectionPoints1[i -1].x,
+                        y1 = connectionPoints1[i -1].y,
+                        x2 = connectionPoints2[i - 1].x,
+                        y2 = connectionPoints2[i -1].y,
+                        x3 = drawPoints[i].x,
+                        y3 = drawPoints[i].y,
+                    )
+                }
+            }
+        }
+        drawPath(
+            path = linePath,
+            color = style.chartLineColor,
+            style = Stroke(
+                width = 5f,
+                cap = StrokeCap.Round,
+            )
+        )
+
+        drawPoints.forEachIndexed {  index, point ->
+            val centerOffset = Offset(
+                x = point.x,
+                y = point.y,
+            )
+            if ( isShowingDataPoints) {
+                drawCircle(
+                    color = style.selectedColor,
+                    radius = 10f,
+                    center = centerOffset,
+                )
+
+                if (selectedDataPointIndex == index) {
+                    drawCircle(
+                        color = Color.White,
+                        radius = 15f,
+                        center = centerOffset,
+                        style = Stroke(
+                            width = 3f,
+                        )
+                    )
+                    drawCircle(
+                        color = style.selectedColor,
+                        radius = 15f,
+                        center = centerOffset,
+                        style = Stroke(
+                            width = 3f,
+                        )
+                    )
+                }
+            }
+        }
     }
 }
+
+/*private fun getSelectedDataPointIndex(
+    touchOffsetX: Float,
+    triggerWidth: Float,
+    drawPoints: List<DataPoint>,
+) : Int {
+
+}*/
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview(widthDp = 1000)
