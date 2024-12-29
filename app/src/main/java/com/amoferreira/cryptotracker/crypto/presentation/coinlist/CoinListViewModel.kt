@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.amoferreira.cryptotracker.core.domain.util.onError
 import com.amoferreira.cryptotracker.core.domain.util.onSuccess
 import com.amoferreira.cryptotracker.crypto.domain.CoinDataSource
+import com.amoferreira.cryptotracker.crypto.presentation.coindetail.DataPoint
 import com.amoferreira.cryptotracker.crypto.presentation.coinlist.components.CoinListState
 import com.amoferreira.cryptotracker.crypto.presentation.models.CoinUi
 import com.amoferreira.cryptotracker.crypto.presentation.models.toCoinUi
@@ -19,11 +20,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 class CoinListViewModel(
     private val coinDataSource: CoinDataSource,
-): ViewModel() {
+) : ViewModel() {
     private val _uiState = MutableStateFlow(CoinListState())
     val uiState = _uiState
         .onStart { loadCoins() }
@@ -37,7 +39,7 @@ class CoinListViewModel(
     val events = _events.receiveAsFlow()
 
     fun onAction(action: CoinListAction) {
-        when(action) {
+        when (action) {
             is CoinListAction.OnCoinClick -> {
                 selectCoin(action.coinUi)
             }
@@ -60,12 +62,25 @@ class CoinListViewModel(
                     end = ZonedDateTime.now()
                 )
                 .onSuccess { history ->
+                    val dataPoints = history
+                        .sortedBy { it.dateTime }
+                        .map {
+                            DataPoint(
+                                x = it.dateTime.hour.toFloat(),
+                                y = it.priceUsd.toFloat(),
+                                xLabel = DateTimeFormatter
+                                    .ofPattern("ha\nM/d")
+                                    .format(it.dateTime),
+                            )
+                        }
                     _uiState.update {
                         it.copy(
+                            selectedCoin = it.selectedCoin?.copy(
+                                coinPriceHistory = dataPoints,
+                            ),
                             isLoading = false,
                         )
                     }
-                    println(history)
                 }
                 .onError { error ->
                     _uiState.update { it.copy(isLoading = false) }

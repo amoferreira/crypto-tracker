@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.amoferreira.cryptotracker.core.presentation.util.ObserveAsEvents
 import com.amoferreira.cryptotracker.core.presentation.util.toString
+import com.amoferreira.cryptotracker.crypto.presentation.coindetail.CoinDetailScreen
 import com.amoferreira.cryptotracker.crypto.presentation.coinlist.CoinListEvent
 import com.amoferreira.cryptotracker.crypto.presentation.coinlist.CoinListViewModel
 import com.amoferreira.cryptotracker.crypto.presentation.coinlist.components.CoinListScreen
@@ -41,10 +42,21 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    CoinListScreen(
-                        uiState = uiState,
-                        modifier = Modifier.padding(innerPadding),
-                    )
+                    when {
+                        uiState.selectedCoin != null -> {
+                            CoinDetailScreen(
+                                uiState = uiState,
+                                modifier = Modifier.padding(innerPadding)
+                            )
+                        }
+                        else -> {
+                            CoinListScreen(
+                                uiState = uiState,
+                                onAction = viewModel::onAction,
+                                modifier = Modifier.padding(innerPadding),
+                            )
+                        }
+                    }
                 }
             }
         }
