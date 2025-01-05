@@ -1,4 +1,4 @@
-package com.amoferreira.cryptotracker.crypto.presentation.coinlist.components
+package com.amoferreira.cryptotracker.crypto.presentation.coinlist
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +14,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import com.amoferreira.cryptotracker.crypto.presentation.coinlist.CoinListAction
+import com.amoferreira.cryptotracker.crypto.presentation.coinlist.components.CoinListItem
+import com.amoferreira.cryptotracker.crypto.presentation.coinlist.components.CoinListState
+import com.amoferreira.cryptotracker.crypto.presentation.coinlist.components.previewCoin
 import com.amoferreira.cryptotracker.ui.theme.CryptoTrackerTheme
 
 @Composable
